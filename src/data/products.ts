@@ -1,0 +1,280 @@
+import { EnterpriseProduct } from '@/types';
+
+export const ENTERPRISE_PRODUCTS: EnterpriseProduct[] = [
+  // --- NGFW & EDGE ---
+  {
+    id: 'palo-alto-pan-os',
+    name: 'Palo Alto Networks (PAN-OS & Panorama)',
+    vendor: 'Palo Alto Networks',
+    category: 'NGFW & Edge',
+    badge: 'Industry Leader',
+    description: 'Pioneered App-ID and Single-Pass Parallel Processing (SP3) architecture. Centralized multi-firewall management via Panorama using hierarchical Device Groups and Templates.',
+    keyArchitecture: [
+      'Single-Pass Parallel Processing (SP3): Decryption, App-ID, User-ID, and Content-ID scanned in a single memory pass without multi-engine buffer handoffs.',
+      'Control Plane / Data Plane Hardware Separation: Routing, logging, and web UI executed on dedicated management CPUs, ensuring firewall packet forwarding is never starved.',
+      'Panorama Management Hierarchy: Shared Objects -> Device Groups (policy inheritance) -> Templates & Template Stacks (interfaces, routing, physical settings).',
+      'WildFire Cloud Sandboxing: Automated static and dynamic behavioral analysis generating protection signatures within minutes globally.',
+    ],
+    cliCheatSheet: [
+      { command: 'show system info', purpose: 'Display PAN-OS version, serial number, uptime, and IP configuration' },
+      { command: 'show session all filter destination 198.51.100.1', purpose: 'Inspect active state table sessions matching target destination' },
+      { command: 'test security-policy-match from Trust to Untrust source 10.1.1.5 destination 8.8.8.8 protocol 17 destination-port 53', purpose: 'Simulate policy lookup to see which rule matches specific traffic' },
+      { command: 'show running rule-use rule-base security type active', purpose: 'View hit count and last used date for active firewall rules' },
+      { command: 'commit', purpose: 'Compile candidate configuration changes into running configuration', mode: 'configure' },
+    ],
+    commonMisconfigurations: [
+      'Configuring security rules with service "any" instead of "application-default", allowing non-standard ports to sneak past application controls.',
+      'Forgetting to configure Anti-Spyware DNS Security profiles with sinkholing enabled, missing C2 domain callbacks.',
+      'Misordering Device Group rules where parent pre-rules shadow localized post-rules.',
+    ],
+    deploymentPatterns: [
+      'Virtual Wire (VWire): Transparent Layer 2 insertion without changing adjacent IP subnets or routing tables.',
+      'Layer 3 Routed: Firewall acts as the default gateway and terminates dynamic routing (OSPF/BGP) and IPsec VPNs.',
+      'Transit VPC Hub: VM-Series firewalls deployed with AWS Transit Gateway in an inspection VPC utilizing GENEVE encapsulation.',
+    ],
+    relatedCertifications: ['PCNSA', 'PCNSE', 'CCNP Security (350-701 SCOR)'],
+  },
+  {
+    id: 'fortinet-fortigate',
+    name: 'Fortinet FortiGate & FortiManager',
+    vendor: 'Fortinet',
+    category: 'NGFW & Edge',
+    badge: 'Hardware ASIC Accelerated',
+    description: 'High-throughput enterprise firewalls powered by custom NP7 (Network Processor) and CP9 (Content Processor) ASICs. Managed at scale via FortiManager and monitored via FortiAnalyzer.',
+    keyArchitecture: [
+      'FortiASIC NP7: Hardware offload for IPv4/IPv6 packet forwarding, stateful firewalling, and IPsec crypto encryption at wire speed.',
+      'FortiASIC CP9: Offloads pattern matching, deep packet inspection, antivirus scanning, and SSL/TLS decryption.',
+      'Virtual Domains (VDOMs): Partitioning a physical FortiGate into multiple independent virtual firewalls with distinct administrators and routing tables.',
+      'Fortinet Security Fabric: Telemetry sharing between FortiGate, FortiClient, FortiMail, and FortiSwitch.',
+    ],
+    cliCheatSheet: [
+      { command: 'get system status', purpose: 'Show FortiOS firmware version, serial, license, and cluster state' },
+      { command: 'diagnose sys session filter dst 198.51.100.1\ndiagnose sys session list', purpose: 'Filter and display active session table entries' },
+      { command: 'diagnose sniffer packet any "tcp port 443" 4 10 a', purpose: 'Run built-in packet sniffer with absolute timestamps (level 4, 10 packets)' },
+      { command: 'diagnose ip router bgp summary', purpose: 'Check BGP neighbor states and prefix counts' },
+      { command: 'diagnose sys ha status', purpose: 'Verify FortiGate High Availability cluster synchronization and heartbeat' },
+    ],
+    commonMisconfigurations: [
+      'Using central NAT without disabling individual policy-based NAT rules, causing unexpected source IP translation conflicts.',
+      'Deploying Proxy-based inspection mode on undersized appliances, triggering memory conservation mode.',
+      'Leaving FortiGate SSL VPN listening on default port 10443 without IP restrictions or MFA.',
+    ],
+    deploymentPatterns: [
+      'Active-Passive HA with Heartbeat Interfaces: Sub-second failover with state synchronization.',
+      'SD-WAN Multi-Cloud Edge: Dynamic application traffic steering across broadband, MPLS, and LTE links.',
+      'Internal Segmentation Firewall (ISFW): Deployed between internal VLANs to restrict lateral ransomware movement.',
+    ],
+    relatedCertifications: ['FCF / FCA / FCP (NSE 4-7)', 'CCNA', 'CCNP Security'],
+  },
+  {
+    id: 'checkpoint-gaia',
+    name: 'Check Point Security Gateway & SmartConsole',
+    vendor: 'Check Point Software',
+    category: 'NGFW & Edge',
+    badge: 'Unified Policy Model',
+    description: 'Enterprise security gateway running on hardened Linux (Gaia OS). Architecture features 3-tier management separation (SmartConsole, Management Server, Security Gateway) and CoreXL multi-core acceleration.',
+    keyArchitecture: [
+      '3-Tier Architecture: SmartConsole (Client UI) connects via SIC to Security Management Server (SMS), which compiles policies and pushes them to Security Gateways.',
+      'ClusterXL: High Availability (New HA mode) and Load Sharing (multicast/unicast) clustering across gateway nodes.',
+      'CoreXL & SecureXL: SecureXL offloads packet processing in kernel space; CoreXL spawns multiple firewall kernel instances across CPU cores.',
+      'Threat Prevention Software Blades: IPS, Anti-Bot, Threat Extraction, and Threat Emulation (sandboxing).',
+    ],
+    cliCheatSheet: [
+      { command: 'cphaprob stat', purpose: 'Check ClusterXL state and identify active/standby nodes' },
+      { command: 'fw tab -t connections -s', purpose: 'Display current connection table capacity and peak utilization' },
+      { command: 'fw monitor -e "accept host(10.1.1.5);"', purpose: 'Inspect packet processing at 4 inspection points (i, I, o, O)' },
+      { command: 'fw ctl multik stat', purpose: 'Check CoreXL multi-core kernel engine distribution and CPU utilization' },
+      { command: 'cpinfo -y all', purpose: 'List all installed hotfixes and jumbo take levels' },
+    ],
+    commonMisconfigurations: [
+      'Disabling SecureXL acceleration unintentionally by creating conflicting complex rules.',
+      'Failing to renew Internal CA (ICA) certificates for SIC communication, preventing policy pushes during emergencies.',
+    ],
+    deploymentPatterns: [
+      'ClusterXL Active/Standby: Dual gateway synchronization over dedicated sync link.',
+      'Maestro Hyperscale Orchestration: Clustering up to 52 gateways into a single elastic virtual security appliance.',
+    ],
+    relatedCertifications: ['CCSA (156-215.81)', 'CCSE', 'CISSP'],
+  },
+  {
+    id: 'cisco-secure-firewall',
+    name: 'Cisco Secure Firewall (FTD & FMC)',
+    vendor: 'Cisco Systems',
+    category: 'NGFW & Edge',
+    badge: 'Snort 3 Native',
+    description: 'Unified firewall software combining Cisco ASA routing and stateful inspection with Firepower Next-Gen threat prevention and native Snort 3 multi-threaded inspection, managed by Firewall Management Center (FMC).',
+    keyArchitecture: [
+      'Firepower Threat Defense (FTD): Unified image running Lina engine (L2-L4 stateful firewall) and Snort 3 engine (L7 App-ID, IPS, TLS inspection).',
+      'Firewall Management Center (FMC): Enterprise policy manager managing hundreds of FTD appliances and HA pairs.',
+      'Cisco Talos Threat Intelligence: Ingests real-time threat telemetry from the largest private threat intelligence group in the world.',
+    ],
+    cliCheatSheet: [
+      { command: 'show running-config access-list', purpose: 'Display active access lists evaluated by the Lina engine' },
+      { command: 'system support diagnostic-cli', purpose: 'Drop from FTD bash into the classic ASA Lina diagnostic CLI' },
+      { command: 'show snort3 statistics', purpose: 'Inspect Snort 3 multi-threading performance and dropped packet counters' },
+      { command: 'capture C1 interface inside match ip host 10.1.1.5 any', purpose: 'Take an inline hardware packet capture on the inside interface' },
+    ],
+    commonMisconfigurations: [
+      'Placing file inspection and malware analysis rules before basic L4 drop rules, wasting Snort CPU cycles on unwanted traffic.',
+      'Running FTD in unrouted transparent mode without properly pruning broadcast domains.',
+    ],
+    deploymentPatterns: [
+      'Routed Mode: Standard perimeter deployment terminating routing protocols and AnyConnect VPNs.',
+      'Clustering: Up to 16 FTD chassis grouped into a single logical firewall.',
+    ],
+    relatedCertifications: ['CCNA', 'CCNP Security (350-701 SCOR)', 'CCIE Security'],
+  },
+  {
+    id: 'algosec-suite',
+    name: 'AlgoSec Security Management Suite',
+    vendor: 'AlgoSec',
+    category: 'NSPM & Microsegmentation',
+    badge: 'Zero-Touch Policy Automation',
+    description: 'Enterprise Network Security Policy Management (NSPM). Automates firewall change workflows (FireFlow), audits security policies and regulatory compliance (Analyzer), and maps application connectivity (AppViz).',
+    keyArchitecture: [
+      'AlgoSec Firewall Analyzer (AFA): Ingests configurations from Palo Alto, Fortinet, Check Point, Cisco, AWS, and Azure to create an end-to-end multi-vendor routing and policy topology graph.',
+      'AlgoSec FireFlow (AFF): Automated change request processing that determines exact rule changes needed and executes zero-touch pushes via APIs.',
+      'AlgoSec AppViz: Automatically discovers application flows and maintains firewall rules based on business application lifecycles.',
+      'Shadow & Redundancy Detection Engine: Mathematically computes overlapping rule definitions across complex rulebases.',
+    ],
+    cliCheatSheet: [
+      { command: 'afa -d <firewall_device_name>', purpose: 'Trigger on-demand report generation and policy audit for target firewall' },
+      { command: 'afa -u', purpose: 'Update the global network topology map across all registered gateways' },
+      { command: 'aff_admin_cli list_requests --status pending', purpose: 'Query pending automated change request tickets in FireFlow' },
+    ],
+    commonMisconfigurations: [
+      'Failing to update static routing definitions in AFA when dynamic routing changes in the data center, leading to inaccurate path simulations.',
+      'Skipping the change approval stage for automated pushes without establishing a canary test window.',
+    ],
+    deploymentPatterns: [
+      'Distributed Master/Worker: Central analytics server with distributed worker nodes querying local firewalls across multi-region data centers.',
+      'Hybrid Cloud Orchestration: Synchronizing on-prem physical firewall rule sets with AWS Security Groups and Azure NSGs.',
+    ],
+    relatedCertifications: ['CISSP', 'CISM', 'PCNSE'],
+  },
+  {
+    id: 'tufin-orchestration',
+    name: 'Tufin Orchestration Suite',
+    vendor: 'Tufin',
+    category: 'NSPM & Microsegmentation',
+    badge: 'Policy Orchestration',
+    description: 'Multi-vendor policy orchestration suite comprising SecureTrack (firewall change auditing and compliance), SecureChange (workflow automation), and SecureApp (application connectivity management).',
+    keyArchitecture: [
+      'Unified Topology Map: Computes end-to-end packet paths across physical firewalls, SDN controllers, and cloud environments.',
+      'Real-Time Change Auditing: Listens to syslog and API triggers from firewalls to record who changed which rule and why.',
+      'Automated Rule Decommissioning: Identifies rules that have had no matching traffic for 90+ days and generates cleanup workflows.',
+    ],
+    cliCheatSheet: [
+      { command: 'st status', purpose: 'Check status of SecureTrack daemons and database services' },
+      { command: 'tos version', purpose: 'Display Tufin Orchestration Suite build version and container health' },
+    ],
+    commonMisconfigurations: [
+      'Not configuring syslog forwarding from firewalls to Tufin, causing delayed out-of-band change detection.',
+    ],
+    deploymentPatterns: [
+      'Kubernetes Cloud Deployment: Containerized Tufin TOS deployed on Red Hat OpenShift or bare-metal Kubernetes.',
+    ],
+    relatedCertifications: ['CISSP', 'PCNSE'],
+  },
+  {
+    id: 'illumio-core',
+    name: 'Illumio Core (Zero Trust Microsegmentation)',
+    vendor: 'Illumio',
+    category: 'NSPM & Microsegmentation',
+    badge: 'Host Microsegmentation',
+    description: 'Host-based microsegmentation without requiring network re-architecture. The Policy Compute Engine (PCE) programs native host firewalls (iptables, Windows Filtering Platform) via Virtual Enforcement Node (VEN) agents.',
+    keyArchitecture: [
+      'Policy Compute Engine (PCE): The central brain that constructs real-time application dependency maps (Illumination) and writes host rules.',
+      'Virtual Enforcement Node (VEN): Lightweight agent installed on bare-metal, VMs, or containers that enforces rules using the operating system native firewall.',
+      '4-Dimensional Labeling: Workloads are labeled by Role, Application, Environment, and Location (e.g., Database | ERP | Production | Frankfurt) rather than fragile IP addresses.',
+    ],
+    cliCheatSheet: [
+      { command: 'illumio-ven-ctl status', purpose: 'Check local VEN agent health and pairing state with the PCE' },
+      { command: 'illumio-ven-ctl firewall state', purpose: 'Inspect active state (Illumination, Selective Enforcement, or Full Enforcement)' },
+    ],
+    commonMisconfigurations: [
+      'Switching workloads into Full Enforcement Mode before thoroughly reviewing dependency flows in Illumination mode, breaking critical application traffic.',
+    ],
+    deploymentPatterns: [
+      'Hybrid Cloud Ring Fencing: Enforcing microsegmentation between on-premises VMware workloads and AWS EC2 instances seamlessly.',
+    ],
+    relatedCertifications: ['CISSP', 'CCNP Security', 'AWS Security Specialty'],
+  },
+  {
+    id: 'splunk-enterprise-security',
+    name: 'Splunk Enterprise & Splunk ES',
+    vendor: 'Splunk (Cisco)',
+    category: 'SIEM & SOC',
+    badge: 'Industry Standard SIEM',
+    description: 'Premier data analytics and SIEM platform. Ingests raw machine data across the enterprise, indexes it into time-series buckets, and enables real-time threat hunting with Search Processing Language (SPL).',
+    keyArchitecture: [
+      'Universal Forwarders (UF): Lightweight log shipping agents sending compressed, encrypted event streams to Indexers.',
+      'Indexers: Parse, timestamp, and store logs in hot/warm/cold file buckets.',
+      'Search Heads & Splunk ES: Provide search interfaces, dashboard visualizations, correlation searches, and Notable Event investigation workflows.',
+      'Common Information Model (CIM): Normalizes multi-vendor fields (e.g. pan_src_ip, cisco_src, src_ip -> src) to allow cross-vendor queries.',
+    ],
+    cliCheatSheet: [
+      { command: './splunk status', purpose: 'Check Splunk daemon health and active listening ports' },
+      { command: './splunk list forward-server', purpose: 'Verify indexer destinations configured on Universal Forwarder' },
+      { command: './splunk btool props list --debug', purpose: 'Debug configuration precedence across Splunk apps' },
+    ],
+    commonMisconfigurations: [
+      'Writing SPL queries that do not filter by "index=" or "earliest/latest", causing slow, expensive full-cluster scans.',
+      'Failing to accelerate data models used by Enterprise Security, resulting in sluggish correlation search evaluation.',
+    ],
+    deploymentPatterns: [
+      'Distributed Search Head Cluster (SHC) & Indexer Cluster: Multi-site clustering across data centers for disaster recovery.',
+    ],
+    relatedCertifications: ['CompTIA CySA+', 'BTL1 / BTL2', 'CISSP'],
+  },
+  {
+    id: 'microsoft-sentinel',
+    name: 'Microsoft Sentinel',
+    vendor: 'Microsoft',
+    category: 'SIEM & SOC',
+    badge: 'Cloud-Native SIEM/SOAR',
+    description: 'Scalable, cloud-native SIEM and SOAR solution built on Azure Monitor Log Analytics. Uses Kusto Query Language (KQL) for high-performance log analysis and Logic Apps for automated incident response playbooks.',
+    keyArchitecture: [
+      'Log Analytics Workspace: Unified data repository storing telemetry with elastic cloud scale.',
+      'Data Connectors: Out-of-the-box integrations for Microsoft Entra ID, Defender XDR, AWS CloudTrail, and Palo Alto Networks (via CEF over Syslog).',
+      'Analytics Rules & Fusion Engine: AI-driven correlation correlating low-fidelity signals into high-confidence security incidents.',
+      'SOAR Automation Rules & Playbooks: Azure Logic Apps workflows that trigger automated response actions (e.g., blocking an IP in Azure Firewall).',
+    ],
+    cliCheatSheet: [
+      { command: 'az sentinel alert-rule list --resource-group SecRG --workspace-name SecWorkspace', purpose: 'Query configured Sentinel analytics alert rules via Azure CLI' },
+      { command: 'az sentinel incident list --resource-group SecRG --workspace-name SecWorkspace', purpose: 'List active security incidents and severity levels' },
+    ],
+    commonMisconfigurations: [
+      'Ingesting high-volume firewall debug logs into standard analytics tier rather than utilizing the cost-effective Basic/Auxiliary Logs tier.',
+    ],
+    deploymentPatterns: [
+      'Cross-Workspace Architecture: Managing multi-tenant or multi-region environments using Azure Lighthouse.',
+    ],
+    relatedCertifications: ['Microsoft Azure Security (AZ-500)', 'CompTIA CySA+'],
+  },
+  {
+    id: 'wireshark-tshark',
+    name: 'Wireshark & TShark',
+    vendor: 'Wireshark Foundation',
+    category: 'Monitoring & Telemetry',
+    badge: 'Deep Packet Inspection',
+    description: 'The world standard open-source network protocol analyzer. Dissects hundreds of protocols from Layer 2 to Layer 7 with microsecond precision. TShark provides headless command-line automation.',
+    keyArchitecture: [
+      'libpcap / Npcap: Kernel-level packet capture drivers that tap network interface queues.',
+      'Dissector Tree: Hierarchical engine dissecting protocol layers iteratively.',
+      'Display Filters vs. Capture Filters: Capture filters (BPF) filter packets in the kernel before memory allocation; display filters filter parsed packets dynamically.',
+    ],
+    cliCheatSheet: [
+      { command: 'tshark -i eth0 -f "tcp port 443" -c 100 -w capture.pcap', purpose: 'Capture 100 HTTPS packets to a PCAP file using BPF capture filter' },
+      { command: 'tshark -r capture.pcap -Y "http.response.code >= 400" -T fields -e ip.src -e http.response.code', purpose: 'Filter PCAP for HTTP errors and extract specific fields' },
+      { command: 'tshark -r capture.pcap -z conv,ip', purpose: 'Generate conversation summary statistics between IP pairs' },
+    ],
+    commonMisconfigurations: [
+      'Running Wireshark as root/Administrator on untrusted networks, exposing the system to potential dissector buffer overflow vulnerabilities.',
+    ],
+    deploymentPatterns: [
+      'Remote SSH Capture: "ssh root@remote tshark -i eth0 -w - | wireshark -k -i -"',
+    ],
+    relatedCertifications: ['CompTIA Network+', 'CySA+', 'OffSec OSCP'],
+  },
+];
